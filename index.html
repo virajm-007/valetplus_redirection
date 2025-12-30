@@ -4,90 +4,75 @@
   <meta charset="UTF-8" />
   <title>Opening ValetPlus...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Prevent caching -->
   <meta http-equiv="cache-control" content="no-cache" />
-  <meta http-equiv="pragma" content="no-cache" />
 
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      font-family: system-ui, -apple-system;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      background: #ffffff;
       margin: 0;
-    }
-    .loader {
-      text-align: center;
-      font-size: 16px;
-      color: #333;
     }
   </style>
 </head>
 
 <body>
-  <div class="loader">
-    Redirecting to ValetPlus…
-  </div>
+  Redirecting to ValetPlus…
 
   <script>
     (function () {
       const params = new URLSearchParams(window.location.search);
-
-      // Example: ?valetId=VAL12345&plate=MH12AB1234
       const valetId = params.get("valetId") || "";
       const plate = params.get("plate") || "";
 
       const message =
-        `Hello ValetPlus 👋\n` +
-        `My valet has been created.\n\n` +
+        `Hello ValetPlus 👋\n\n` +
         `🚗 Vehicle No: ${plate}\n` +
         `🎫 Valet ID: ${valetId}`;
 
       const encodedMessage = encodeURIComponent(message);
 
-      const valetAppDeepLink = `valetplus://open?valetId=${valetId}`;
+      const valetDeepLink = `kaarmika://open?valetId=${valetId}`;
       const valetUniversalLink = `https://app.valetplus.net/open?valetId=${valetId}`;
-      const whatsappLink = `https://wa.me/918180091425?text=${encodedMessage}`;
-      const fallbackSite = `https://valetplus.net`;
+      const whatsappDeepLink = `whatsapp://send?phone=918180091425&text=${encodedMessage}`;
+      const whatsappWebLink = `https://wa.me/918180091425?text=${encodedMessage}`;
+      const finalFallback = `https://valetplus.net`;
 
-      const userAgent = navigator.userAgent || navigator.vendor;
+      const ua = navigator.userAgent || "";
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
 
-      const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
-      const isAndroid = /Android/i.test(userAgent);
+      let fallbackTimer;
 
-      let appOpened = false;
-
-      // Fallback logic
-      const fallbackToWhatsApp = () => {
-        window.location.href = whatsappLink;
-
-        // Final fallback to website
-        setTimeout(() => {
-          window.location.href = fallbackSite;
-        }, 2500);
+      const goToFinal = () => {
+        window.location.href = finalFallback;
       };
 
-      // Try ValetPlus App
+      const tryWhatsApp = () => {
+        // Try WhatsApp app
+        window.location.href = whatsappDeepLink;
+
+        fallbackTimer = setTimeout(() => {
+          // If app not installed, open web OR final fallback
+          window.location.href = whatsappWebLink;
+
+          setTimeout(goToFinal, 2000);
+        }, 1500);
+      };
+
+      // Step 1: Try ValetPlus App
       if (isIOS) {
-        // iOS prefers Universal Links
         window.location.href = valetUniversalLink;
 
-        setTimeout(() => {
-          fallbackToWhatsApp();
-        }, 2000);
+        fallbackTimer = setTimeout(tryWhatsApp, 2000);
       } else if (isAndroid) {
-        // Android prefers deep links
-        window.location.href = valetAppDeepLink;
+        window.location.href = valetDeepLink;
 
-        setTimeout(() => {
-          fallbackToWhatsApp();
-        }, 2000);
+        fallbackTimer = setTimeout(tryWhatsApp, 2000);
       } else {
-        // Desktop or unknown
-        window.location.href = fallbackSite;
+        goToFinal();
       }
     })();
   </script>
