@@ -5,17 +5,6 @@
   <title>Opening ValetPlus...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="cache-control" content="no-cache" />
-
-  <style>
-    body {
-      font-family: system-ui, -apple-system;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-  </style>
 </head>
 
 <body>
@@ -34,45 +23,37 @@
 
       const encodedMessage = encodeURIComponent(message);
 
-      const valetDeepLink = `kaarmika://open?valetId=${valetId}`;
+      const valetDeepLink = `valetplus://open?valetId=${valetId}`;
       const valetUniversalLink = `https://app.valetplus.net/open?valetId=${valetId}`;
       const whatsappDeepLink = `whatsapp://send?phone=918180091425&text=${encodedMessage}`;
-      const whatsappWebLink = `https://wa.me/918180091425?text=${encodedMessage}`;
       const finalFallback = `https://valetplus.net`;
 
       const ua = navigator.userAgent || "";
       const isIOS = /iPhone|iPad|iPod/i.test(ua);
       const isAndroid = /Android/i.test(ua);
 
-      let fallbackTimer;
+      let timeout;
 
-      const goToFinal = () => {
+      const goToWebsite = () => {
         window.location.href = finalFallback;
       };
 
       const tryWhatsApp = () => {
-        // Try WhatsApp app
         window.location.href = whatsappDeepLink;
 
-        fallbackTimer = setTimeout(() => {
-          // If app not installed, open web OR final fallback
-          window.location.href = whatsappWebLink;
-
-          setTimeout(goToFinal, 2000);
-        }, 1500);
+        // If WhatsApp is not installed → go to website
+        timeout = setTimeout(goToWebsite, 1200);
       };
 
-      // Step 1: Try ValetPlus App
+      // Step 1: Try ValetPlus app
       if (isIOS) {
         window.location.href = valetUniversalLink;
-
-        fallbackTimer = setTimeout(tryWhatsApp, 2000);
+        timeout = setTimeout(tryWhatsApp, 1800);
       } else if (isAndroid) {
         window.location.href = valetDeepLink;
-
-        fallbackTimer = setTimeout(tryWhatsApp, 2000);
+        timeout = setTimeout(tryWhatsApp, 1800);
       } else {
-        goToFinal();
+        goToWebsite();
       }
     })();
   </script>
